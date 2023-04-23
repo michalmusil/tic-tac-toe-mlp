@@ -24,17 +24,31 @@ def convertToIntList(stringList):
 
 
 """
-rawTrainData = network.loadDataFromFile("../Data/trainMoves.json")
-rawTestData = network.loadDataFromFile("../Data/testMoves.json")
+rawData = network.loadDataFromFile("../Data/trainMoves.json")
+#equalizedTrainData = network.equalizeData(rawTrainData)
 
-#equalizedTrainData = equalizeData(rawTrainData)
+trainData, testData = network.splitDataToTrainAndTest(dataToSplit=rawData, testRatio=0.15)
 
-trainData = network.adjustDataForModel(rawTrainData)
-testData = network.adjustDataForModel(rawTestData)
+train = network.adjustDataForModel(trainData)
+test = network.adjustDataForModel(testData)
 
-model = network.trainModel(trainData, testData)
-network.saveModel(model, "adam_sparseCE_e10_bs15_relu64_relu128_relu64")
+continuation = True
+model = None
+while continuation:
+    model = network.trainModel(train, test)
+    loss, accuracy = model.evaluate(test[0], test[1])
+    if loss < 0.49 and accuracy > 0.83:
+        continuation = False
+
+#network.saveModel(model, "adam_sparseCE_e10_bs15_relu64_tanh128_tanh64_vs0,1")
+
 """
-loadedModel = network.loadModel("adam_sparseCE_e10_bs15_relu64_relu128_relu64")
 
-userTest(loadedModel)
+loadedModel = network.loadModel("adam_sparseCE_e10_bs15_relu64_tanh128_tanh64_vs0,1")
+
+rawData = network.loadDataFromFile("../Data/testMoves.json")
+testData = network.adjustDataForModel(rawData)
+loadedModel.evaluate(testData[0],testData[1])
+
+#userTest(loadedModel)
+

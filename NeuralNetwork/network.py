@@ -1,6 +1,8 @@
 import tensorflow as tf
+from tensorflow import keras
 import numpy as np
 import json
+import random
 
 
 BOARD_JSON_KEY = "board"
@@ -40,6 +42,16 @@ def equalizeData(loadedData):
 
     return equalizedData
 
+def splitDataToTrainAndTest(dataToSplit, testRatio):
+    if testRatio >= 1 or testRatio <= 0:
+        raise Exception("Test ratio must be a number between 0 and 1 excluded")
+    random.shuffle(dataToSplit)
+    splittingIndex = len(dataToSplit) - round((len(dataToSplit)-1) * testRatio)
+    trainData = dataToSplit[0:splittingIndex]
+    testData = dataToSplit[splittingIndex:len(dataToSplit)]
+    return (trainData, testData)
+
+
 def adjustDataForModel(loadedData):
     inputs = []
     labels = []
@@ -52,19 +64,19 @@ def adjustDataForModel(loadedData):
 
 def trainModel(trainData, testData):
     X, Y = trainData
-    model = tf.keras.models.Sequential()
-    model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dense(64, activation=tf.nn.relu))
-    model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu))
-    model.add(tf.keras.layers.Dense(64, activation=tf.nn.relu))
-    model.add(tf.keras.layers.Dense(9, activation=tf.nn.softmax))
+    model = keras.models.Sequential()
+    model.add(keras.layers.Flatten())
+    model.add(keras.layers.Dense(64, activation = keras.activations.relu))
+    model.add(keras.layers.Dense(128, activation = keras.activations.tanh))
+    model.add(keras.layers.Dense(64, activation = keras.activations.tanh))
+    model.add(keras.layers.Dense(9, activation = keras.activations.softmax))
 
     model.compile(
-        optimizer = 'adam',
-        loss = 'sparse_categorical_crossentropy',
+        optimizer = keras.optimizers.legacy.Adam(learning_rate = 0.001),
+        loss = keras.losses.SparseCategoricalCrossentropy(),
         metrics = ['accuracy']
     )
-    model.fit(X, Y, epochs = 10, batch_size = 15)
+    model.fit(X, Y, epochs = 10, batch_size = 15, validation_split = 0.15)
     
     print("Evaluation:")
     model.evaluate(testData[0], testData[1])
@@ -74,7 +86,7 @@ def saveModel(model, modelName):
     model.save(f"{modelName}.model")
 
 def loadModel(modelName):
-    model = tf.keras.models.load_model(f"{modelName}.model")
+    model = tf.keras.models.load_model(f"models/{modelName}.model")
     return model
 
 
