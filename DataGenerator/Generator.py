@@ -5,10 +5,10 @@ import json
 # board states are 1 for curernt player's board slot, 0 for empty board slot and -1 for ememie's board slot
 # next best moves are from 0-8 - indexed board slots from the top-left corner in horizontal snake-like indexing
 
-# RETURNS A UNIQUE IDENTIFIER FOR A BOARD STATE AND NEXT MOVE 
-def getMoveIdentifier(boardState, nextMovePosition):
-    identifier = str(boardState) + ";" + str(nextMovePosition)
-    return [identifier, boardState, nextMovePosition]
+# RETURNS A UNIQUE IDENTIFIER FOR A BOARD STATE 
+def getStateIdentifier(boardState):
+    identifier = str(boardState)
+    return identifier
 
 # JUST CREATES A TUPLE OF BOARD STATE AND NEXT BEST MOVE
 def getMove(boardState, nextMovePosition):
@@ -28,7 +28,7 @@ def mapBoardState(boardState, desiredPlayer):
 
 # MAIN GENERATING LOOP
 def generateBestMoveSet(numberOfMoves, desiredPlayer):
-    generatedMoveIdentifiers = []
+    alreadyGeneratedBoardStates = []
     moves = []
     
     board = []
@@ -37,22 +37,27 @@ def generateBestMoveSet(numberOfMoves, desiredPlayer):
     for i in range(numberOfMoves):
         while(keepGenerating):
             board, next = generator.getRandomBoard()
+
+            if next != desiredPlayer:
+                continue
+
+            boardIdentifier = getStateIdentifier(board)
+
+            if(boardIdentifier in alreadyGeneratedBoardStates):
+                continue
+
             aiMoveIndex = generator.getAIMove(board = board, nextMove = next, aiPlayer= next)
-            
             boardState = mapBoardState(board, desiredPlayer)
             nextBestMove = aiMoveIndex[0]
-            moveIdentifier = getMoveIdentifier(boardState, nextBestMove)
 
-            if(next == desiredPlayer 
-            and (not generator.checkTie(board)) 
+            if((not generator.checkTie(board)) 
             and (not generator.checkLose(board, desiredPlayer)) 
-            and (not generator.checkWin(board, desiredPlayer))
-            and (moveIdentifier not in generatedMoveIdentifiers)):
+            and (not generator.checkWin(board, desiredPlayer))):
                 keepGenerating = False
         
         newMove = getMove(boardState, nextBestMove)
 
-        generatedMoveIdentifiers.append(moveIdentifier)
+        alreadyGeneratedBoardStates.append(boardIdentifier)
         moves.append(newMove)
 
         keepGenerating = True

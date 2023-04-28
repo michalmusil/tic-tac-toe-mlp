@@ -1,5 +1,11 @@
+import tensorflow as tf
 import network
 import numpy as np
+
+
+CURRENT_MODEL_NAME = "adam_sparseCE_e10_bs15_relu64_tanh128_tanh64_vs0,1"
+TF_LITE_MODEL_PATH = "models/tflite/ticTacToe.tflite"
+
 
 def userTest(model):
     while True:
@@ -23,32 +29,53 @@ def convertToIntList(stringList):
     return intList
 
 
+def trainAndSaveModel():
+    rawData = network.loadDataFromFile("../Data/trainMoves2.json")
+    #equalizedTrainData = network.equalizeData(rawTrainData)
+
+    trainData, testData = network.splitDataToTrainAndTest(dataToSplit = rawData, testRatio = 0.1)
+
+    train = network.adjustDataForModel(trainData)
+    test = network.adjustDataForModel(testData)
+
+    model, history = network.trainModel(train, test)
+    network.displayTrainHistory(history)
+
+    network.saveModel(model, CURRENT_MODEL_NAME)
+
+def evaluateAndTestModel():
+    loadedModel = network.loadModel(CURRENT_MODEL_NAME)
+    rawData = network.loadDataFromFile("../Data/trainMoves2.json")
+    testData = network.adjustDataForModel(rawData)
+    loadedModel.evaluate(testData[0],testData[1])
+    userTest(loadedModel)
+
+def loadModelAndSaveToTfLite():
+    loadedModel = network.loadModel(CURRENT_MODEL_NAME)
+    network.exportToTfLite(model = loadedModel, path = TF_LITE_MODEL_PATH)    
+
+def checkTfLiteModel():
+    liteModel = tf.lite.Interpreter(model_path=TF_LITE_MODEL_PATH)
+    liteModel.allocate_tensors()
+    inputDetails = liteModel.get_input_details()
+    outputDetails = liteModel.get_output_details()
+    print("Input details: ", inputDetails)
+    print("Output details: ", outputDetails)
+    inputToCheck = [[1,0,1,0,1,-1,-1,-1,0]] # expected output is 1
+
+    liteModel.set_tensor(tensor_index = inputDetails[0]['index'], value = inputToCheck)
+    liteModel.invoke()
+    result = np.argmax(liteModel.get_tensor(outputDetails[0]['index']))
+    print("Result for: ", inputToCheck, " is: ", result)
+
+
+
+
+
+
 """
-rawData = network.loadDataFromFile("../Data/trainMoves.json")
-#equalizedTrainData = network.equalizeData(rawTrainData)
-
-trainData, testData = network.splitDataToTrainAndTest(dataToSplit=rawData, testRatio=0.15)
-
-train = network.adjustDataForModel(trainData)
-test = network.adjustDataForModel(testData)
-
-continuation = True
-model = None
-while continuation:
-    model = network.trainModel(train, test)
-    loss, accuracy = model.evaluate(test[0], test[1])
-    if loss < 0.49 and accuracy > 0.83:
-        continuation = False
-
-#network.saveModel(model, "adam_sparseCE_e10_bs15_relu64_tanh128_tanh64_vs0,1")
-
+trainAndSaveModel()
+#loadModelAndSaveToTfLite()
+#checkTfLiteModel()
+evaluateAndTestModel()
 """
-
-loadedModel = network.loadModel("adam_sparseCE_e10_bs15_relu64_tanh128_tanh64_vs0,1")
-
-rawData = network.loadDataFromFile("../Data/testMoves.json")
-testData = network.adjustDataForModel(rawData)
-loadedModel.evaluate(testData[0],testData[1])
-
-#userTest(loadedModel)
-

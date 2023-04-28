@@ -68,7 +68,7 @@ def getAIMove(board, nextMove, aiPlayer):
 
 
 def getRandomBoard():
-    filledPositions = randint(2, 8)
+    filledPositions = randint(1, 8)
     board = [" " for _ in range(9)]
     r = randint(0, 1)
     moves = ["X", "O"]

@@ -3,6 +3,7 @@ from tensorflow import keras
 import numpy as np
 import json
 import random
+import matplotlib.pyplot as plt
 
 
 BOARD_JSON_KEY = "board"
@@ -62,6 +63,29 @@ def adjustDataForModel(loadedData):
     labelsArray = np.array(labels)
     return(inputsArray, labelsArray)
 
+def saveModel(model, modelName):
+    model.save(f"{modelName}.model")
+
+def loadModel(modelName):
+    model = tf.keras.models.load_model(f"models/{modelName}.model")
+    return model
+
+def exportToTfLite(model, path):
+    convert = tf.lite.TFLiteConverter.from_keras_model(model)
+    liteModel = convert.convert()
+    open(path, "wb").write(liteModel)
+
+def displayTrainHistory(history):
+    plt.plot(history.history['accuracy'], label='Přesnost (v %/100)')
+    plt.plot(history.history['loss'], label='Odchylka (chyba)')
+    plt.title('Vývoj přesnosti a chyby při testování')
+    plt.xlabel('Epocha')
+    plt.legend(loc="lower left")
+    plt.show()
+
+
+
+
 def trainModel(trainData, testData):
     X, Y = trainData
     model = keras.models.Sequential()
@@ -76,18 +100,14 @@ def trainModel(trainData, testData):
         loss = keras.losses.SparseCategoricalCrossentropy(),
         metrics = ['accuracy']
     )
-    model.fit(X, Y, epochs = 10, batch_size = 15, validation_split = 0.15)
-    
+
+    trainHistory = model.fit(X, Y, epochs = 10, batch_size = 15, validation_split = 0.15)
+
     print("Evaluation:")
     model.evaluate(testData[0], testData[1])
-    return model
+    return (model, trainHistory)
 
-def saveModel(model, modelName):
-    model.save(f"{modelName}.model")
 
-def loadModel(modelName):
-    model = tf.keras.models.load_model(f"models/{modelName}.model")
-    return model
 
 
 

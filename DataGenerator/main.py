@@ -1,4 +1,4 @@
 import Generator as gen
 
-dataset = gen.generateBestMoveSet(2000, "X")
-gen.saveMovesToJson(dataset, "trainMoves_2000")
+dataset = gen.generateBestMoveSet(4519, "X")
+gen.saveMovesToJson(dataset, "trainMoves2")
