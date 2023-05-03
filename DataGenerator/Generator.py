@@ -1,3 +1,4 @@
+# Author: Michal Musil
 import TicTacToeMaster as generator
 import json
 

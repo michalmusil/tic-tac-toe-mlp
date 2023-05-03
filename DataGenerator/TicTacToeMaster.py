@@ -1,3 +1,4 @@
+# Author: navdeeshahuja (https://github.com/navdeeshahuja/Python-TicTacToe-Best-Move-Generator-Artificial-Intelligence-Minimax)
 from random import randint
 
 def checkWin(board, player):

@@ -1,3 +1,4 @@
+# Author: Michal Musil
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
@@ -57,14 +58,14 @@ def adjustDataForModel(loadedData):
     inputs = []
     labels = []
     for input, label in loadedData:
-        inputs.append(np.array(input))
+        inputs.append(np.array(input).astype('int32'))
         labels.append(label)
     inputsArray = np.array(inputs)
     labelsArray = np.array(labels)
     return(inputsArray, labelsArray)
 
 def saveModel(model, modelName):
-    model.save(f"{modelName}.model")
+    model.save(f"models/{modelName}.model")
 
 def loadModel(modelName):
     model = tf.keras.models.load_model(f"models/{modelName}.model")
